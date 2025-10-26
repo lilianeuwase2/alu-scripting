@@ -23,14 +23,11 @@ def top_ten(subreddit):
         print("None")
         return
 
-    # Set a generic, common web browser User-Agent.
-    # The Reddit API is likely rate-limiting or blocking the
-    # custom script-like User-Agents from the checker's IP.
-    # This will make the request look like it's from a browser.
+    # Set a very simple, custom User-Agent.
+    # This is a common workaround for this specific project, as the
+    # API's filter might be rejecting more complex strings.
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                      'AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/58.0.3029.110 Safari/537.36'
+        'User-Agent': 'My-User-Agent-1.0'
     }
 
     # Set the parameters for the query
@@ -45,8 +42,7 @@ def top_ten(subreddit):
         response = requests.get(url,
                                 headers=headers,
                                 params=params,
-                                allow_redirects=False,
-                                timeout=5)  # Use a 5-second timeout
+                                allow_redirects=False)
 
         # If the status code is not 200 (OK), it's an invalid subreddit
         # or another error (e.g., 404 Not Found, 302 Redirect, 429 Rate Limit)
@@ -80,3 +76,4 @@ def top_ten(subreddit):
     except Exception:
         # Catch all other potential errors (network, JSON parsing, etc.)
         print("None")
+
