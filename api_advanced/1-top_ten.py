@@ -25,9 +25,9 @@ def top_ten(subreddit):
 
     # Set a custom, unique User-Agent. This is the most common
     # reason for this check to fail. A generic agent gets rate-limited.
-    # This format is common for these ALX/Holberton projects.
+    # Using the GitHub username to make it more unique.
     headers = {
-        'User-Agent': 'linux:0x16.api.advanced:v1.0.0 (by /u/me)'
+        'User-Agent': 'linux:0x16.api.advanced:v1.0.0 (by /u/lilianeuwase2)'
     }
 
     # Set the parameters for the query
@@ -42,7 +42,8 @@ def top_ten(subreddit):
         response = requests.get(url,
                                 headers=headers,
                                 params=params,
-                                allow_redirects=False)
+                                allow_redirects=False,
+                                timeout=5)  # Added a 5-second timeout
 
         # If the status code is not 200 (OK), it's an invalid subreddit
         # or another error (e.g., 404 Not Found, 302 Redirect, 429 Rate Limit)
