@@ -18,24 +18,23 @@ def top_ten(subreddit):
         return
 
     url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-    headers = {"User-Agent": "python:alx.api_advanced:v1.0 (by /u/fake_user)"}
+    headers = {"User-Agent": "python:alx.api_advanced:v1.0 (by /u/your_reddit_username)"}
     params = {"limit": 10}
 
     try:
-        response = requests.get(
-            url, headers=headers, params=params, allow_redirects=False, timeout=10
-        )
+        response = requests.get(url, headers=headers, params=params, allow_redirects=False)
 
+        # If invalid subreddit or no JSON data
         if response.status_code != 200:
             print("None")
             return
 
-        data = response.json().get("data", {}).get("children", [])
-        if not data:
+        posts = response.json().get("data", {}).get("children", [])
+        if not posts:
             print("None")
             return
 
-        for post in data:
+        for post in posts[:10]:
             print(post.get("data", {}).get("title"))
 
     except Exception:
