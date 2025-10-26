@@ -23,8 +23,12 @@ def top_ten(subreddit):
         print("None")
         return
 
-    # Set a custom, unique User-Agent to avoid API errors
-    headers = {'User-Agent': 'my-python-app/1.0.1'}
+    # Set a custom, unique User-Agent. This is the most common
+    # reason for this check to fail. A generic agent gets rate-limited.
+    # This format is common for these ALX/Holberton projects.
+    headers = {
+        'User-Agent': 'linux:0x16.api.advanced:v1.0.0 (by /u/me)'
+    }
 
     # Set the parameters for the query
     params = {'limit': 10}
@@ -41,7 +45,7 @@ def top_ten(subreddit):
                                 allow_redirects=False)
 
         # If the status code is not 200 (OK), it's an invalid subreddit
-        # or another error (e.g., 404 Not Found, 302 Found/Redirect)
+        # or another error (e.g., 404 Not Found, 302 Redirect, 429 Rate Limit)
         if response.status_code != 200:
             print("None")
             return
@@ -50,6 +54,7 @@ def top_ten(subreddit):
         data = response.json()
 
         # Check for the expected data structure
+        # This checks if 'data' key exists, and if 'children' key exists in 'data'
         if 'data' not in data or 'children' not in data.get('data'):
             print("None")
             return
@@ -68,9 +73,6 @@ def top_ten(subreddit):
             if title:
                 print(title)
 
-    except (requests.exceptions.RequestException,
-            KeyError,
-            AttributeError,
-            ValueError):
-        # Catch all potential errors (network, JSON parsing, bad structure)
+    except Exception:
+        # Catch all other potential errors (network, JSON parsing, etc.)
         print("None")
