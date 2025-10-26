@@ -1,79 +1,22 @@
 #!/usr/bin/python3
-"""
-A module that queries the Reddit API and prints the titles of the first
-10 hot posts for a given subreddit.
-"""
-
+"""Print the titles of the first 10Hot Posts"""
 import requests
 
 
 def top_ten(subreddit):
-    """
-    Queries the Reddit API and prints the titles of the first 10 hot posts
-    for a given subreddit.
+    """The top ten titles"""
+    headers = {'User-Agent': 'python:my_reddit_script:v1.0.0 (by anonymous)'}
+    url = "https://reddit.com/r/{}.json".format(subreddit)
+    response = requests.get(url, headers=headers)
 
-    Args:
-        subreddit (str): The name of the subreddit to query.
-
-    Prints:
-        The titles of the first 10 hot posts, each on a new line.
-        'None' if the subreddit is invalid or an error occurs.
-    """
-    if subreddit is None or not isinstance(subreddit, str):
-        print("None")
-        return
-
-    # Set a very simple, custom User-Agent.
-    # This is a common workaround for this specific project, as the
-    # API's filter might be rejecting more complex strings.
-    headers = {
-        'User-Agent': 'My-User-Agent-1.0'
-    }
-
-    # Set the parameters for the query
-    params = {'limit': 10}
-
-    # Construct the URL using .format() for compatibility with Python 3.4
-    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-
-    try:
-        # Make the GET request
-        # allow_redirects=False is crucial to detect invalid subreddits
-        response = requests.get(url,
-                                headers=headers,
-                                params=params,
-                                allow_redirects=False)
-
-        # If the status code is not 200 (OK), it's an invalid subreddit
-        # or another error (e.g., 404 Not Found, 302 Redirect, 429 Rate Limit)
-        if response.status_code != 200:
-            print("None")
-            return
-
-        # Parse the JSON response
-        data = response.json()
-
-        # Check for the expected data structure
-        # This checks if 'data' key exists, and if 'children' key exists in 'data'
-        if 'data' not in data or 'children' not in data.get('data'):
-            print("None")
-            return
-
-        # Get the list of posts
-        children = data.get('data').get('children')
-
-        if not children:
-            # Valid subreddit, but no posts. Print nothing.
-            return
-
-        # Loop through the posts and print the title
-        for post in children:
-            # Safely get the title from the post data
-            title = post.get('data', {}).get('title')
-            if title:
-                print(title)
-
-    except Exception:
-        # Catch all other potential errors (network, JSON parsing, etc.)
-        print("None")
-
+    if response.status_code == 200:
+        json_data = response.json()
+        for i in range(10):
+            print(
+                    json_data.get('data')
+                    .get('children')[i]
+                    .get('data')
+                    .get('title')
+                )
+    else:
+        print(None)
