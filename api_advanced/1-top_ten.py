@@ -1,23 +1,44 @@
 #!/usr/bin/python3
-"""Print the titles of the first 10Hot Posts"""
+"""
+Queries the Reddit API and prints the titles of the first 10 hot posts listed for a given subreddit Prints None if subreddit is invalid.
+"""
 import requests
 
-
 def top_ten(subreddit):
-    """The top ten titles"""
-    headers = {'User-Agent': 'python:my_reddit_script:v1.0.0 (by anonymous)'}
-    url = "https://reddit.com/r/{}.json".format(subreddit)
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        json_data = response.json()
-        for i in range(10):
-            print(
-                    json_data.get('data')
-                    .get('children')[i]
-                    .get('data')
-                    .get('title')
-                )
-    else:
+    """Print first 10hot posts titles or None if subreddit is invalid."""
+    if subreddit is None or not isinstance(subreddit, str):
         print(None)
+        return
 
+    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
+    headers = {
+        "User-Agent": "ALU-API-Advanced/1.0 (by u_example_student)",
+        "Accept": "application/json"
+    }
+    params = {'limit': 10}
+
+    try:
+        resp = requests.get(
+            url, headers=headers, params=params,
+            allow_redirects=False, timeout=10
+        )
+
+        # If invalid subreddit or blocked by rate/redirect, print None
+        if resp.status_code != 200:
+            print(None)
+            return
+
+        data = resp.json()
+        posts = data.get('data', {}).get('children', [])
+
+        if not posts:
+            print(None)
+            return
+
+        for post in posts[:10]:
+            title = post.get('data', {}).get('title')
+            if title is not None:
+                print(title)
+    except Exception:
+        # Any network/JSON erroR
+        print(None)
