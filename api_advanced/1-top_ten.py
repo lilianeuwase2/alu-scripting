@@ -1,42 +1,54 @@
 #!/usr/bin/python3
 """
-Module that queries the Reddit API and prints the titles
-of the first 10 hot posts listed for a given subreddit.
+This module provides a function to query the Reddit API and print the titles
+of the first 10 hot posts from a specified subreddit.
+
+If the subreddit is invalid or cannot be accessed, the function prints None.
+
+Example:
+    >>> top_ten("python")
+    Post Title 1
+    Post Title 2
+    ...
+    Post Title 10
+
+Functions:
+    top_ten(subreddit): Prints the titles of the first 10 hot posts for a subreddit.
 """
 
 import requests
 
-
 def top_ten(subreddit):
-    """
-    Queries the Reddit API and prints the titles of the first
-    10 hot posts for a given subreddit.
-    If the subreddit is invalid, prints None.
-    """
-    if subreddit is None or not isinstance(subreddit, str):
-        print("None")
-        return
 
-    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-    headers = {"User-Agent": "python:alx.api_advanced:v1.0 (by /u/fake_user)"}
+    """
+    Query the Reddit API and print the titles of the top 10 hot posts in a subreddit.
+
+    This function sends a GET request to the Reddit API endpoint for the specified
+    subreddit and retrieves the list of "hot" posts. It then prints the titles of
+    the first 10 posts. If the subreddit is invalid or inaccessible, it prints None.
+
+    Args:
+        subreddit (str): The name of the subreddit to query.
+
+    Returns:
+        None
+    """
+
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
+    headers = {"User-Agent": "MyRedditApp/0.1"}
     params = {"limit": 10}
 
     try:
-        response = requests.get(
-            url, headers=headers, params=params, allow_redirects=False, timeout=10
-        )
+        response = requests.get(url, headers=headers, params=params, allow_redirects=False)
 
+        # If subreddit is invalid, Reddit returns 302 or 404
         if response.status_code != 200:
-            print("None")
+            print(None)
             return
 
-        data = response.json().get("data", {}).get("children", [])
-        if not data:
-            print("None")
-            return
-
-        for post in data:
-            print(post.get("data", {}).get("title"))
+        data = response.json()
+        for child in data["data"]["children"]:
+            print(child["data"]["title"])
 
     except Exception:
-        print("None")
+        print(None)
