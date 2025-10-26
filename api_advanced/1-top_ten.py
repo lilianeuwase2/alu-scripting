@@ -1,46 +1,33 @@
 #!/usr/bin/python3
+
 """
-Print the titles of the first 10 Hot Posts for a given subreddit.
+prints the titles of the first 10 hot posts listed for a given subreddit
 """
-import requests
+
+from requests import get
 
 
 def top_ten(subreddit):
     """
-    Queries the Reddit API and prints the titles of the first 10 hot posts
-    for a given subreddit. Prints None if the subreddit is invalid.
+    function that queries the Reddit API and prints the titles of the first
+    10 hot posts listed for a given subreddit
     """
-    # 1. Use a more generic User-Agent. This is the most likely
-    #    fix for the checker failing with a 4xx error.
-    headers = {'User-Agent': 'My User Agent 1.0'}
 
-    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
+    if subreddit is None or not isinstance(subreddit, str):
+        print("None")
+
+    user_agent = {'User-agent': 'Google Chrome Version 81.0.4044.129'}
     params = {'limit': 10}
+    url = 'https://www.reddit.com/r/{}/hot/.json'.format(subreddit)
 
-    # This is correct: do not follow redirects, as per instructions
-    response = requests.get(url,
-                            headers=headers,
-                            params=params,
-                            allow_redirects=False)
+    response = get(url, headers=user_agent, params=params)
+    results = response.json()
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        try:
-            json_data = response.json()
-            children = json_data.get('data', {}).get('children', [])
+    try:
+        my_data = results.get('data').get('children')
 
-            # 2. Removed the `if not children: print(None)` block.
-            #    If a subreddit is valid but has 0 posts, this loop
-            #    will simply not run, and nothing will be printed.
-            #    This is the correct behavior.
+        for i in my_data:
+            print(i.get('data').get('title'))
 
-            # Iterate through the returned posts and print their titles
-            for post in children:
-                print(post.get('data', {}).get('title'))
-
-        except (ValueError, AttributeError):
-            # Failed to parse JSON, treat as invalid
-            print(None)
-    else:
-        # If status code is not 200 (e.g., 404 for invalid subreddit)
-        print(None)
+    except Exception:
+        print("None")
