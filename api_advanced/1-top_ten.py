@@ -1,44 +1,42 @@
 #!/usr/bin/python3
 """
-A function that queries the Reddit API and prints the titles of the
-first 10 hot posts listed for a given subreddit.
+This module contains a function that queries the Reddit API
+and prints the top 10 hot posts for a given subreddit.
 """
 import requests
 
 
 def top_ten(subreddit):
-    """
-    Queries the Reddit API and prints the titles of the first 10 hot posts
-    for a given subreddit.
+    """Prints the titles of the first 10 hot posts for a given subreddit.
+
+    If the subreddit is not valid or an error occurs, prints "None".
 
     Args:
-        subreddit (str): The name of the subreddit to query.
-
-    Prints:
-        The titles of the top 10 hot posts, each on a new line.
-        'None' if the subreddit is invalid or an error occurs.
+        subreddit (str): The subreddit name to query.
     """
-    if subreddit is None or not isinstance(subreddit, str):
+    if not subreddit or not isinstance(subreddit, str):
         print("None")
         return
 
-    # Define the API endpoint and parameters
-    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
-    params = {'limit': 10}
+    # Set a custom User-Agent as required by Reddit API rules to avoid 429 errors
+    user_agent = 'python:1-top_ten:v1.0 (by /u/gemini_bot)'
+    headers = {'User-Agent': user_agent}
     
-    # Set a custom User-Agent to comply with Reddit's API rules
-    # and avoid a 429 Too Many Requests error.
-    headers = {'User-Agent': 'my-python-app/1.0 by u/gemini'}
+    # Set parameters for the request: limit to 10 posts
+    params = {'limit': 10}
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
 
     try:
-        # Make the GET request, ensuring redirects are not followed
+        # Make the GET request, disallowing redirects
+        # allow_redirects=False ensures that we don't follow a redirect
+        # to a search page for an invalid subreddit.
         response = requests.get(url,
                                 headers=headers,
                                 params=params,
                                 allow_redirects=False)
 
-        # If the status code is not 200 (OK), the subreddit is likely
-        # invalid or another error occurred.
+        # If status code is not 200 (OK), it's an invalid subreddit
+        # (e.g., 404 Not Found) or another error.
         if response.status_code != 200:
             print("None")
             return
@@ -46,23 +44,19 @@ def top_ten(subreddit):
         # Parse the JSON response
         data = response.json()
 
-        # Safely navigate the JSON structure to get the list of posts
+        # Safely extract the list of posts ('children')
         posts = data.get('data', {}).get('children', [])
 
-        if not posts:
-            # If the 'children' list is empty or missing, print None
-            print("None")
-            return
-
-        # Loop through the posts and print their titles
+        # If 'posts' is empty (a valid subreddit with no posts),
+        # this loop will simply not run, and nothing will be printed,
+        # which is the correct behavior.
         for post in posts:
             title = post.get('data', {}).get('title')
             if title:
                 print(title)
 
-    except requests.RequestException:
-        # Handle network-related errors (e.g., connection error)
+    except (requests.RequestException, ValueError, AttributeError):
+        # Catch potential network errors, JSON decode errors, or
+        # errors from an unexpected data structure.
         print("None")
-    except (ValueError, AttributeError):
-        # Handle errors from JSON decoding or unexpected data structure
-        print("None")
+
