@@ -1,81 +1,76 @@
 #!/usr/bin/python3
 """
-Print the titles of the first 10 hot posts for a subreddit.
-
-If the subreddit is invalid or the request fails, print None.
+A module that queries the Reddit API and prints the titles of the first
+10 hot posts for a given subreddit.
 """
-import time
+
 import requests
 
 
 def top_ten(subreddit):
-    """Print first 10 hot post titles or None if subreddit is invalid."""
+    """
+    Queries the Reddit API and prints the titles of the first 10 hot posts
+    for a given subreddit.
+
+    Args:
+        subreddit (str): The name of the subreddit to query.
+
+    Prints:
+        The titles of the first 10 hot posts, each on a new line.
+        'None' if the subreddit is invalid or an error occurs.
+    """
     if subreddit is None or not isinstance(subreddit, str):
-        print(None)
+        print("None")
         return
 
-    hosts = [
-        "https://api.reddit.com",
-        "https://old.reddit.com",
-        "https://www.reddit.com",
-    ]
+    # Set a custom, unique User-Agent to avoid API errors
+    headers = {'User-Agent': 'my-python-app/1.0.1'}
 
-    headers = {
-        "User-Agent": (
-            "linux:alu.api_advanced.top10:v1.0 "
-            "(by /u/example_student)"
-        ),
-        "Accept": "application/json",
-        "Connection": "close",
-    }
-    params = {"limit": 10, "raw_json": 1}
+    # Set the parameters for the query
+    params = {'limit': 10}
 
-    for base in hosts:
-        url = "{}/r/{}/hot.json".format(base, subreddit)
+    # Construct the URL using .format() for compatibility with Python 3.4
+    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
 
-        # two attempts per host to ride out 429/403 bursts
-        for _ in range(2):
-            try:
-                resp = requests.get(
-                    url,
-                    headers=headers,
-                    params=params,
-                    allow_redirects=False,
-                    timeout=10
-                )
-            except Exception:
-                # try again / next host
-                break
+    try:
+        # Make the GET request
+        # allow_redirects=False is crucial to detect invalid subreddits
+        response = requests.get(url,
+                                headers=headers,
+                                params=params,
+                                allow_redirects=False)
 
-            # Retry once on common transient blocks
-            if resp.status_code in (302, 403, 429):
-                time.sleep(1)
-                continue
-
-            if resp.status_code != 200:
-                # move to next host
-                break
-
-            # Ensure we actually got JSON (not an HTML page)
-            ctype = resp.headers.get("content-type", "")
-            if "json" not in ctype:
-                break
-
-            try:
-                payload = resp.json()
-            except ValueError:
-                break
-
-            posts = payload.get("data", {}).get("children", [])
-            if not posts:
-                print(None)
-                return
-
-            for post in posts[:10]:
-                title = post.get("data", {}).get("title")
-                if title is not None:
-                    print(title)
+        # If the status code is not 200 (OK), it's an invalid subreddit
+        # or another error (e.g., 404 Not Found, 302 Found/Redirect)
+        if response.status_code != 200:
+            print("None")
             return
 
-    # All hosts/attempts failed
-    print(None)
+        # Parse the JSON response
+        data = response.json()
+
+        # Check for the expected data structure
+        if 'data' not in data or 'children' not in data.get('data'):
+            print("None")
+            return
+
+        # Get the list of posts
+        children = data.get('data').get('children')
+
+        if not children:
+            # Valid subreddit, but no posts. Print nothing.
+            return
+
+        # Loop through the posts and print the title
+        for post in children:
+            # Safely get the title from the post data
+            title = post.get('data', {}).get('title')
+            if title:
+                print(title)
+
+    except (requests.exceptions.RequestException,
+            KeyError,
+            AttributeError,
+            ValueError):
+        # Catch all potential errors (network, JSON parsing, bad structure)
+        print("None")
