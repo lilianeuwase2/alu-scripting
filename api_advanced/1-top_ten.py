@@ -23,11 +23,14 @@ def top_ten(subreddit):
         print("None")
         return
 
-    # Set a custom, unique User-Agent. This is the most common
-    # reason for this check to fail. A generic agent gets rate-limited.
-    # Using the GitHub username to make it more unique.
+    # Set a generic, common web browser User-Agent.
+    # The Reddit API is likely rate-limiting or blocking the
+    # custom script-like User-Agents from the checker's IP.
+    # This will make the request look like it's from a browser.
     headers = {
-        'User-Agent': 'linux:0x16.api.advanced:v1.0.0 (by /u/lilianeuwase2)'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                      'AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/58.0.3029.110 Safari/537.36'
     }
 
     # Set the parameters for the query
@@ -43,7 +46,7 @@ def top_ten(subreddit):
                                 headers=headers,
                                 params=params,
                                 allow_redirects=False,
-                                timeout=5)  # Added a 5-second timeout
+                                timeout=5)  # Use a 5-second timeout
 
         # If the status code is not 200 (OK), it's an invalid subreddit
         # or another error (e.g., 404 Not Found, 302 Redirect, 429 Rate Limit)
