@@ -1,44 +1,47 @@
 #!/usr/bin/python3
-"""
-Queries the Reddit API and prints the titles of the first 10 hot posts listed for a given subreddit Prints None if subreddit is invalid.
-"""
+"""Print the titles of the first 10 hot posts for a given subreddit."""
+
 import requests
 
+
 def top_ten(subreddit):
-    """Print first 10hot posts titles or None if subreddit is invalid."""
-    if subreddit is None or not isinstance(subreddit, str):
+    """
+    Query the Reddit API and print the titles of the first 10 hot posts.
+
+    Args:
+        subreddit (str): The subreddit to query.
+
+    Prints:
+        The titles of the first 10 hot posts, or None if the subreddit is invalid.
+    """
+    if not isinstance(subreddit, str) or not subreddit:
         print(None)
         return
 
-    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-    headers = {
-        "User-Agent": "ALU-API-Advanced/1.0 (by u_example_student)",
-        "Accept": "application/json"
-    }
-    params = {'limit': 10}
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
+    headers = {"User-Agent": "ALU-Reddit-Task/0.1"}
+    params = {"limit": 10}
 
     try:
-        resp = requests.get(
-            url, headers=headers, params=params,
-            allow_redirects=False, timeout=10
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            allow_redirects=False,
+            timeout=10
         )
 
-        # If invalid subreddit or blocked by rate/redirect, print None
-        if resp.status_code != 200:
+        if response.status_code != 200:
             print(None)
             return
-
-        data = resp.json()
-        posts = data.get('data', {}).get('children', [])
-
+        
+        posts = response.json().get("data", {}).get("children", [])
         if not posts:
             print(None)
             return
 
         for post in posts[:10]:
-            title = post.get('data', {}).get('title')
-            if title is not None:
-                print(title)
-    except Exception:
-        # Any network/JSON erroR
+            print(post.get("data", {}).get("title"))
+
+    except requests.exceptions.RequestException:
         print(None)
